@@ -75,7 +75,7 @@ function stumblerDiscoveries(username) {
 
   // Show this information on the screen as well
   $("#summary_results #summary_errors").html(errors.join("<br />"));
-  $("#summary_results #summary_summary").html("<div id='summary_header'>Approximate combined views:</div> " + viewCount+" on " + totalDiscoveries + " discoveries<br />");
+  $("#summary_results #summary_summary").html("<div id='summary_header'>Approximate combined views:</div> " + viewCount+" on " + totalDiscoveries + " discoveries<br /><br />");
   $("#summary_results #summary_most").html("<div id='summary_header'>Most viewed:</div><a target='_blank' href='" + mostViewedURL + "'>" + mostViewedTitle + "</a><br />" + mostViews + " views<br /><br />");
   $("#summary_results #summary_second").html("<div id='summary_header'>Second most viewed:</div><a target='_blank' href='" + secondViewedURL + "'>" + secondViewedTitle + "</a><br />" + secondMostViews + " views<br />");
 }
