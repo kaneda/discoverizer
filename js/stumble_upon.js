@@ -1,3 +1,8 @@
+// Thanks stackoveflow: http://stackoverflow.com/a/12790873
+function viewSorter(a, b) {
+  return b.views - a.views;
+}
+
 function stumblerDiscoveries(username) {
   $(".summary_spinner").css({"display":"block"});
   
@@ -12,22 +17,9 @@ function stumblerDiscoveries(username) {
   
   var totalLiveDiscoveries = 0;
   var liveViewCount = 0;
-  
-  var mostViews = 0;
-  var mostViewedTitle = "";
-  var mostViewedURL = "";
-  
-  var mostLiveViews = 0;
-  var mostLiveViewedTitle = "";
-  var mostLiveViewedURL = "";
-  
-  var secondMostViews = 0;
-  var secondViewedTitle = "";
-  var secondViewedURL = "";
-  
-  var secondMostLiveViews = 0;
-  var secondLiveViewedTitle = "";
-  var secondLiveViewedURL = "";
+
+  var liveViewArray = Array();
+  var totalViewArray = Array();
   
   var errors = [];
 
@@ -41,34 +33,19 @@ function stumblerDiscoveries(username) {
       totalDiscoveries += data_length;
       for(var i = 0; i < data_length; i+=1) {
         currentViews = parseInt(result.data.data.items[i].view.data.countStumblesPretty.replace(",","").replace(".","").replace("K","000").replace("M","000000"), 10);
-        if(currentViews > mostViews) {
-          secondMostViews = mostViews;
-          secondViewedTitle = mostViewedTitle;
-          secondViewedURL = mostViewedURL;
-	
-          mostViews = currentViews;
-          mostViewedTitle = result.data.data.items[i].view.data.title;
-          mostViewedURL = baseURL + result.data.data.items[i].view.data.url;
-        } else if(currentViews > secondMostViews) {
-          secondMostViews = currentViews;
-          secondViewedTitle = result.data.data.items[i].view.data.title;
-          secondViewedURL = baseURL + result.data.data.items[i].view.data.url;
-        }
+
+        totalViewArray.push({
+          url: baseURL + result.data.data.items[i].view.data.url,
+          title: result.data.data.items[i].view.data.title,
+          views: currentViews
+        })
 
         if(result.data.data.items[i].view.data.dead === false) {
-          if(currentViews > mostLiveViews) {
-            secondMostLiveViews = mostLiveViews;
-            secondViewedLiveTitle = mostLiveViewedTitle;
-            secondViewedLiveURL = mostLiveViewedURL;
-  
-            mostLiveViews = currentViews;
-            mostLiveViewedTitle = result.data.data.items[i].view.data.title;
-            mostLiveViewedURL = baseURL + result.data.data.items[i].view.data.url;
-          } else if(currentViews > secondMostLiveViews) {
-            secondMostLiveViews = currentViews;
-            secondLiveViewedTitle = result.data.data.items[i].view.data.title;
-            secondLiveViewedURL = baseURL + result.data.data.items[i].view.data.url;
-          }
+          liveViewArray.push({
+            url: baseURL + result.data.data.items[i].view.data.url,
+            title: result.data.data.items[i].view.data.title,
+            views: currentViews
+          })
           liveViewCount += currentViews;
           totalLiveDiscoveries += 1;
         }
@@ -80,8 +57,9 @@ function stumblerDiscoveries(username) {
   };
   
   var errorResult = function(result) {
-    console.log("There was an error between " + currentStart + " and " + (currentStart+count) + ", these entries will not be counted");
-    errors.push("There was an error between " + currentStart + " and " + (currentStart+count) + ", these entries will not be counted");
+    msg = "There was an error between " + currentStart + " and " + (currentStart+count) + ", these entries will not be counted";
+    console.log(msg);
+    errors.push(msg);
     currentStart += count;
   };
 
@@ -98,29 +76,46 @@ function stumblerDiscoveries(username) {
     });
   }
 
+  sortedTotalArray = totalViewArray.sort(viewSorter);
+  sortedLiveArray = liveViewArray.sort(viewSorter);
+
   $(".summary_spinner").css({"display":"none"});
+  $("#show_more_total_button").css({"display":"inline"});
+  $("#show_more_live_button").css({"display":"inline"});
 
   console.log("Approximate combined views: " + viewCount+" on " + totalDiscoveries + " discoveries");
-  console.log("Most viewed:\n" + mostViewedTitle + "\n"+mostViewedURL + "\n" + mostViews + "\n\n");
-  console.log("Second most viewed:\n" + secondViewedTitle + "\n" + secondViewedURL + "\n" + secondMostViews + "\n");
 
   // Show this information on the screen as well
   $("#summary_results #summary_errors").html(errors.join("<br />"));
   totalViewsHTML = "<div id='summary_header'>Approximate combined views (total):</div> " + viewCount+" on " + totalDiscoveries + " discoveries<br /><br />";
-  mostViewsHTML = "<div id='summary_header'>Most viewed:</div><a target='_blank' href='" + mostViewedURL + "'>" + mostViewedTitle + "</a><br />" + mostViews + " views<br /><br />";
-  secondMostViewsHTML = "<div id='summary_header'>Second most viewed:</div><a target='_blank' href='" + secondViewedURL + "'>" + secondViewedTitle + "</a><br />" + secondMostViews + " views<br /><br />";
+  mostViewsHTML = "<div id='summary_header'>Most viewed:</div><a target='_blank' href='" + sortedTotalArray[0].url + "'>" + sortedTotalArray[0].title + "</a><br />" + sortedTotalArray[0].views + " views<br /><br />";
+  secondMostViewsHTML = "<div id='summary_header'>Second most viewed:</div><a target='_blank' href='" + sortedTotalArray[1].url + "'>" + sortedTotalArray[1].title + "</a><br />" + sortedTotalArray[1].views + " views<br /><br />";
+  moreTotalHTML = ""
+
+  for(var j = 2; j < 20; j += 1) {
+    moreTotalHTML += (j+1) + ". <a href='" + sortedTotalArray[j].url + "' target='_blank'>" + sortedTotalArray[j].title + "</a><br />" + sortedTotalArray[j].views + " views<br />";
+  }
+
   $("#summary_results #summary_summary").html(totalViewsHTML);
   $("#summary_results #summary_most").html(mostViewsHTML);
   $("#summary_results #summary_second").html(secondMostViewsHTML);
+  $("#summary_results #show_more_total").html(moreTotalHTML);
   
   // This happens when looking at your own profile, since an external user cannot see your dead discoveries
   if(viewCount != liveViewCount) {
     liveViewsHTML = "<div id='summary_header'>Approximate combined views (live):</div> " + liveViewCount + " on " + totalLiveDiscoveries + " discoveries<br /><br />";
-    mostLiveViewsHTML = "<div id='summary_header'>Most live viewed:</div><a target='_blank' href='" + mostLiveViewedURL + "'>" + mostLiveViewedTitle + "</a><br />" + mostLiveViews + " views<br /><br />";
-    secondMostLiveViewsHTML = "<div id='summary_header'>Second most live viewed:</div><a target='_blank' href='" + secondLiveViewedURL + "'>" + secondLiveViewedTitle + "</a><br />" + secondMostLiveViews + " views<br />";
+    mostLiveViewsHTML = "<div id='summary_header'>Most live viewed:</div><a target='_blank' href='" + sortedLiveArray[0].url + "'>" + sortedLiveArray[0].title + "</a><br />" + sortedLiveArray[0].views + " views<br /><br />";
+    secondMostLiveViewsHTML = "<div id='summary_header'>Second most live viewed:</div><a target='_blank' href='" + sortedLiveArray[1].url + "'>" + sortedLiveArray[1].title + "</a><br />" + sortedLiveArray[1].views + " views<br />";
+    moreLiveHTML = ""
+
+    for(var k = 2; k < 20; k += 1) {
+      moreLiveHTML += (k+1) + ". <a href='" + sortedLiveArray[k].url + "' target='_blank'>" + sortedLiveArray[k].title + "</a><br />" + sortedLiveArray[k].views + " views<br />";
+    }
+
     $("#summary_results #summary_live_summary").html(liveViewsHTML);
     $("#summary_results #summary_most_live").html(mostLiveViewsHTML);
     $("#summary_results #summary_second_live").html(secondMostLiveViewsHTML);
+    $("#summary_results #show_more_live").html(moreLiveHTML);
   } else {
     // Reset the HTML, this might not be the first run
     $("#summary_results #summary_live_summary").html("");
