@@ -1,3 +1,7 @@
+You can download for:
+- Firefox via http://crossrider.com/install/49410-discoverizer
+- Chrome via https://chrome.google.com/webstore/detail/discoverizer/ambbkdjmflboohmclcdlnpaedmhgoppm
+
 Below is the CrossRider readme (because this app was created using the CrossRider platform for cross-browser support).
 
 I created this app because I was curious about my own discoveries on StumbleUpon, as there is no way to sort discoveries or summarize the number of views that you have in total. After writing the javascript to accomplish this I realized I could easily port it to a cross-browser extension using CrossRider and provide it to anyone who'd like it. It currently only works when on the stumbleupon.com domain, so download and go to stumbleupon.com to summarize any user.
